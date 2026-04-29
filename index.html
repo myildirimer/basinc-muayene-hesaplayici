@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basınç Muayene Hesaplayıcı</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1a1917;
+    --text2: #6b6a65;
+    --text3: #9a9994;
+    --accent: #1a6b3c;
+    --accent-bg: #e8f5ee;
+    --danger: #8b1a1a;
+    --danger-bg: #fdeaea;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110;
+      --surface: #1c1c1a;
+      --surface2: #252523;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.15);
+      --text: #f0efe9;
+      --text2: #a0a09a;
+      --text3: #606058;
+      --accent: #4ade80;
+      --accent-bg: #0d2b1a;
+      --danger: #f87171;
+      --danger-bg: #2b0d0d;
+    }
+  }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container { max-width: 680px; margin: 0 auto; }
+
+  header { margin-bottom: 2rem; }
+  header h1 {
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: normal;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+  header p {
+    font-size: 0.9rem;
+    color: var(--text2);
+    font-family: 'Courier New', monospace;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3px;
+    margin-bottom: 1.5rem;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    cursor: pointer;
+    border: none;
+    border-radius: calc(var(--radius) - 2px);
+    background: transparent;
+    color: var(--text2);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-label {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 1rem;
+  }
+
+  .row { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 120px; }
+  .field label { font-family: 'Courier New', monospace; font-size: 12px; color: var(--text2); }
+
+  input[type="number"], select {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]:focus, select:focus { border-color: var(--accent); }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  button.primary {
+    width: 100%;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  button.primary:hover { opacity: 0.85; }
+
+  button.secondary {
+    flex: 1;
+    padding: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: transparent;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  button.secondary:hover { background: var(--surface2); color: var(--text); }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .metric {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+  .metric .lbl { font-family: 'Courier New', monospace; font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .metric .val { font-family: 'Georgia', serif; font-size: 18px; color: var(--text); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+  }
+  .badge.ok { background: var(--accent-bg); color: var(--accent); }
+  .badge.fail { background: var(--danger-bg); color: var(--danger); }
+  .badge.ok::before { content: "✓"; }
+  .badge.fail::before { content: "✗"; }
+
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1rem 0; }
+
+  .nokta-entry {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .nokta-entry .field { min-width: 90px; }
+
+  .nokta-result-row {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .nokta-result-row .nr {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    min-width: 55px;
+  }
+  .nokta-result-row .nv {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .hint {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--text3);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    border-left: 2px solid var(--border2);
+  }
+
+  .genel-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .genel-lbl { font-family: 'Courier New', monospace; font-size: 12px; color: var(--text2); }
+
+  footer {
+    text-align: center;
+    margin-top: 3rem;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--text3);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Basınç Muayene Hesaplayıcı</h1>
+    <p>MİH · Uygunluk · Muayene Noktası Önerisi</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('tek')">Tek Nokta</button>
+    <button class="tab" onclick="switchTab('genel')">Genel Muayene</button>
+    <button class="tab" onclick="switchTab('noktalar')">Nokta Önerisi</button>
+  </div>
+
+  <!-- TEK NOKTA -->
+  <div class="panel active" id="panel-tek">
+    <div class="card">
+      <div class="section-label">Ölçüm değerleri</div>
+      <div class="row">
+        <div class="field">
+          <label>Birim</label>
+          <select id="tek-birim" onchange="updateTekLabels()">
+            <option value="kpa">kPa</option>
+            <option value="psi">psi</option>
+            <option value="bar">bar</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Sıcaklık (°C)</label>
+          <input type="number" id="tek-sic" value="20" step="0.5">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label id="lbl-vc">Vc (kPa)</label>
+          <input type="number" id="tek-vc" value="550" step="1">
+        </div>
+        <div class="field">
+          <label id="lbl-vref">Vref (kPa)</label>
+          <input type="number" id="tek-vref" value="500" step="1">
+        </div>
+      </div>
+      <button class="primary" onclick="hesaplaTek()">Hesapla →</button>
+    </div>
+    <div class="card" id="tek-result" style="display:none;">
+      <div class="section-label">Sonuç</div>
+      <div class="result-grid" id="tek-grid"></div>
+      <div id="tek-badge"></div>
+    </div>
+  </div>
+
+  <!-- GENEL MUAYENE -->
+  <div class="panel" id="panel-genel">
+    <div class="card">
+      <div class="section-label">Çoklu nokta girişi</div>
+      <div class="row" style="margin-bottom:4px;">
+        <div class="field" style="max-width:160px;">
+          <label>Birim</label>
+          <select id="genel-birim" onchange="updateGenelLabels()">
+            <option value="kpa">kPa</option>
+            <option value="psi">psi</option>
+            <option value="bar">bar</option>
+          </select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div id="genel-noktalar"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="secondary" onclick="ekleNokta()">+ Nokta ekle</button>
+        <button class="secondary" onclick="silNokta()">− Son noktayı sil</button>
+      </div>
+      <hr class="divider">
+      <button class="primary" onclick="hesaplaGenel()">Hesapla →</button>
+    </div>
+    <div class="card" id="genel-result" style="display:none;">
+      <div class="section-label">Nokta sonuçları</div>
+      <div id="genel-rows"></div>
+      <hr class="divider">
+      <div class="genel-row">
+        <span class="genel-lbl">Genel muayene:</span>
+        <div id="genel-badge"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOKTA ÖNERİSİ -->
+  <div class="panel" id="panel-noktalar">
+    <div class="card">
+      <div class="section-label">Basınç aralığı</div>
+      <div class="hint">≈15 psi aralıklarla alt, orta ve üst muayene noktaları hesaplanır.</div>
+      <div class="row">
+        <div class="field" style="max-width:160px;">
+          <label>Birim</label>
+          <select id="n-birim" onchange="updateNLabels()">
+            <option value="kpa">kPa</option>
+            <option value="psi">psi</option>
+            <option value="bar">bar</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label id="lbl-nmin">Min (kPa)</label>
+          <input type="number" id="n-min" value="100" step="1">
+        </div>
+        <div class="field">
+          <label id="lbl-nmax">Max (kPa)</label>
+          <input type="number" id="n-max" value="800" step="1">
+        </div>
+      </div>
+      <button class="primary" onclick="hesaplaNoktalar()">Öner →</button>
+    </div>
+    <div class="card" id="n-result" style="display:none;">
+      <div class="section-label">Önerilen noktalar</div>
+      <div id="n-rows"></div>
+    </div>
+  </div>
+
+  <footer>Tüm hesaplamalar tarayıcıda çalışır · Veri gönderilmez</footer>
+</div>
+
+<script>
+// --- Dönüşümler ---
+function toKpa(v, b) {
+  if (b === "psi") return v * 6.89476;
+  if (b === "bar") return v * 100;
+  return v;
+}
+function fromKpa(v, b) {
+  if (b === "psi") return v / 6.89476;
+  if (b === "bar") return v / 100;
+  return v;
+}
+
+// --- MİH ---
+function tablo(p, t) {
+  let s = p <= 400 ? 8 : p <= 1000 ? 16 : 25;
+  if (t < 15) return 0.5 * (15 - t) + s;
+  if (t <= 25) return s;
+  return 0.5 * (t - 25) + s;
+}
+function mih(p, t) {
+  let m = tablo(p, t) * 1.25;
+  return m < 13.8 ? 13.8 : m;
+}
+function fmt(v, d) { return parseFloat(v.toFixed(d !== undefined ? d : 3)); }
+
+// --- Sekmeler ---
+function switchTab(t) {
+  ['tek','genel','noktalar'].forEach(id => {
+    document.getElementById('panel-' + id).classList.toggle('active', id === t);
+  });
+  document.querySelectorAll('.tab').forEach((el, i) => {
+    el.classList.toggle('active', ['tek','genel','noktalar'][i] === t);
+  });
+}
+
+// --- Label güncellemeleri ---
+function updateTekLabels() {
+  let b = document.getElementById('tek-birim').value.toUpperCase();
+  document.getElementById('lbl-vc').textContent = 'Vc (' + b + ')';
+  document.getElementById('lbl-vref').textContent = 'Vref (' + b + ')';
+}
+function updateNLabels() {
+  let b = document.getElementById('n-birim').value.toUpperCase();
+  document.getElementById('lbl-nmin').textContent = 'Min (' + b + ')';
+  document.getElementById('lbl-nmax').textContent = 'Max (' + b + ')';
+}
+function updateGenelLabels() {
+  let b = document.getElementById('genel-birim').value.toUpperCase();
+  document.querySelectorAll('#genel-noktalar .nokta-entry').forEach(row => {
+    let lbs = row.querySelectorAll('label');
+    lbs[0].textContent = 'Vc (' + b + ')';
+    lbs[1].textContent = 'Vref (' + b + ')';
+  });
+}
+
+// --- Badge helper ---
+function badge(sonuc, buyuk) {
+  let ok = sonuc === 'U';
+  let size = buyuk ? 'font-size:15px;padding:8px 18px;' : '';
+  return `<span class="badge ${ok ? 'ok' : 'fail'}" style="${size}">${ok ? 'Uygun' : 'Uygun Değil'}</span>`;
+}
+
+// --- TEK NOKTA ---
+function hesaplaTek() {
+  let birim = document.getElementById('tek-birim').value;
+  let vc = parseFloat(document.getElementById('tek-vc').value);
+  let vref = parseFloat(document.getElementById('tek-vref').value);
+  let t = parseFloat(document.getElementById('tek-sic').value);
+  let b = birim.toUpperCase();
+
+  let vcK = toKpa(vc, birim), vrefK = toKpa(vref, birim);
+  let E = vcK - vrefK;
+  let absE = Math.abs(E);
+  let mihVal = mih(vrefK, t);
+  let mihB = fromKpa(mihVal, birim);
+  let absEB = fromKpa(absE, birim);
+  let sonuc = absE <= mihVal ? 'U' : 'UD';
+
+  document.getElementById('tek-grid').innerHTML = [
+    ['Vc', fmt(vc) + ' ' + b],
+    ['Vref', fmt(vref) + ' ' + b],
+    ['E (Vc − Vref)', fmt(fromKpa(E, birim)) + ' ' + b],
+    ['|E|', fmt(absEB) + ' ' + b],
+    ['MİH', fmt(mihB) + ' ' + b],
+    ['Sıcaklık', t + ' °C']
+  ].map(([l,v]) => `<div class="metric"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('');
+
+  document.getElementById('tek-badge').innerHTML = badge(sonuc, false);
+  document.getElementById('tek-result').style.display = 'block';
+}
+
+// --- GENEL MUAYENE ---
+function renderGenel() {
+  let b = document.getElementById('genel-birim').value.toUpperCase();
+  let cont = document.getElementById('genel-noktalar');
+  let count = cont.querySelectorAll('.nokta-entry').length || 0;
+  let div = document.createElement('div');
+  div.className = 'nokta-entry';
+  div.innerHTML = `
+    <div class="field"><label>Vc (${b})</label><input type="number" class="g-vc" value="550" step="1"></div>
+    <div class="field"><label>Vref (${b})</label><input type="number" class="g-vref" value="500" step="1"></div>
+    <div class="field" style="max-width:90px;"><label>°C</label><input type="number" class="g-sic" value="20" step="0.5"></div>
+  `;
+  cont.appendChild(div);
+}
+function ekleNokta() { renderGenel(); }
+function silNokta() {
+  let rows = document.querySelectorAll('#genel-noktalar .nokta-entry');
+  if (rows.length > 1) rows[rows.length - 1].remove();
+}
+function hesaplaGenel() {
+  let birim = document.getElementById('genel-birim').value;
+  let b = birim.toUpperCase();
+  let rows = document.querySelectorAll('#genel-noktalar .nokta-entry');
+  let sonuclar = [];
+  let html = '';
+
+  rows.forEach((row, i) => {
+    let vc = parseFloat(row.querySelector('.g-vc').value);
+    let vref = parseFloat(row.querySelector('.g-vref').value);
+    let t = parseFloat(row.querySelector('.g-sic').value);
+    let vcK = toKpa(vc, birim), vrefK = toKpa(vref, birim);
+    let E = vcK - vrefK;
+    let absE = Math.abs(E);
+    let mihVal = mih(vrefK, t);
+    let s = absE <= mihVal ? 'U' : 'UD';
+    sonuclar.push(s);
+
+    html += `<div class="nokta-result-row">
+      <span class="nr">Nokta ${i+1}</span>
+      <span class="nv">Vc: ${fmt(vc)} ${b}</span>
+      <span class="nv">Vref: ${fmt(vref)} ${b}</span>
+      <span class="nv">|E|: ${fmt(fromKpa(absE,birim))} ${b}</span>
+      <span class="nv">MİH: ${fmt(fromKpa(mihVal,birim))} ${b}</span>
+      ${badge(s, false)}
+    </div>`;
+  });
+
+  document.getElementById('genel-rows').innerHTML = html;
+  let genel = sonuclar.includes('UD') ? 'UD' : 'U';
+  document.getElementById('genel-badge').innerHTML = badge(genel, true);
+  document.getElementById('genel-result').style.display = 'block';
+}
+
+// --- NOKTA ÖNERİSİ ---
+function hesaplaNoktalar() {
+  let birim = document.getElementById('n-birim').value;
+  let b = birim.toUpperCase();
+  let minV = parseFloat(document.getElementById('n-min').value);
+  let maxV = parseFloat(document.getElementById('n-max').value);
+
+  let minPsi = fromKpa(toKpa(minV, birim), 'psi');
+  let maxPsi = fromKpa(toKpa(maxV, birim), 'psi');
+
+  let pts = [];
+  let cur = minPsi;
+  while (cur <= maxPsi + 0.001) { pts.push(cur); cur += 15; }
+  if (pts[pts.length-1] < maxPsi - 0.001) pts.push(maxPsi);
+
+  let alt = pts[0];
+  let orta = pts[Math.floor(pts.length / 2)];
+  let ust = pts[pts.length - 1];
+
+  function back(psi) { return fromKpa(toKpa(psi, 'psi'), birim); }
+
+  let labels = ['Alt nokta', 'Orta nokta', 'Üst nokta'];
+  let vals = [alt, orta, ust].map(back);
+
+  document.getElementById('n-rows').innerHTML = labels.map((l, i) =>
+    `<div class="nokta-result-row">
+      <span class="nr">${l}</span>
+      <span class="nv" style="font-size:17px;">${fmt(vals[i])} ${b}</span>
+      <span class="nv" style="color:var(--text3);font-size:12px;">(${fmt(fromKpa(toKpa(vals[i],birim),'psi'))} psi)</span>
+    </div>`
+  ).join('');
+  document.getElementById('n-result').style.display = 'block';
+}
+
+// --- Başlangıç ---
+renderGenel();
+renderGenel();
+</script>
+</body>
+</html>
