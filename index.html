@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Basınç Ölçer Muayene Sistemi</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+.card {
+    background: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+h1 {
+    color: white;
+    text-align: center;
+}
+
+h2 {
+    border-left: 5px solid #2a5298;
+    padding-left: 10px;
+}
+
+input, select {
+    padding: 6px;
+    margin: 5px;
+}
+
+button {
+    padding: 8px 15px;
+    background: #2a5298;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1e3c72;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background: #f0f0f0;
+}
+
+.good { color: green; font-weight: bold; }
+.bad { color: red; font-weight: bold; }
+
+.info {
+    background: #eef3ff;
+    padding: 10px;
+    border-left: 4px solid #2a5298;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Lastik Basıncı Ölçer Muayene Sistemi</h1>
+
+<div class="card">
+<h2>Genel Bilgi</h2>
+Doküman Referans No:
+<input type="text" id="docNo" placeholder="REF-2026-001">
+</div>
+
+<div class="card">
+<h2>1. Aşama: Cihaz Tanımı</h2>
+
+Birim:
+<select id="birim">
+<option value="psi">psi</option>
+<option value="kPa">kPa</option>
+<option value="bar">bar</option>
+</select><br>
+
+Min: <input type="number" id="min">
+Max: <input type="number" id="max">
+
+<button onclick="noktaOner()">Nokta Öner</button>
+
+<div id="oneriler" class="info"></div>
+</div>
+
+<div class="card">
+<h2>2. Aşama: Muayene</h2>
+
+Sıcaklık (°C):
+<input type="number" id="sicaklik"><br><br>
+
+<div id="olcumler"></div>
+
+</div>
+
+<div class="card">
+<h2>3. Aşama: Sonuç</h2>
+
+<button onclick="hesapla()">Hesapla</button>
+
+<div id="sonuc"></div>
+
+</div>
+
+</div>
+
+<script>
+
+function f2(x){ return Number(x).toFixed(2); }
+
+function toKpa(val, unit){
+    if(unit==="psi") return val*6.89476;
+    if(unit==="bar") return val*100;
+    return val;
+}
+
+function fromKpa(val, unit){
+    if(unit==="psi") return val/6.89476;
+    if(unit==="bar") return val/100;
+    return val;
+}
+
+function tablo(kpa,t){
+    let s;
+    if(kpa<=400) s=8;
+    else if(kpa<=1000) s=16;
+    else s=25;
+
+    if(t<15) return 0.5*(15-t)+s;
+    if(t<=25) return s;
+    return 0.5*(t-25)+s;
+}
+
+function mih(kpa,t){
+    let m=tablo(kpa,t)*1.25;
+    if(m<13.8) m=13.8;
+    return m;
+}
+
+function yuvarla5(x){ return Math.round(x/5)*5; }
+
+function noktaOner(){
+
+    let min = parseFloat(document.getElementById("min").value);
+    let max = parseFloat(document.getElementById("max").value);
+    let birim = document.getElementById("birim").value;
+
+    let minPsi = fromKpa(toKpa(min,birim),"psi");
+    let maxPsi = fromKpa(toKpa(max,birim),"psi");
+
+    let range = maxPsi - minPsi;
+
+    let alt = yuvarla5(minPsi + range*0.2);
+    let orta = yuvarla5(minPsi + range*0.5);
+    let ust = yuvarla5(minPsi + range*0.8);
+
+    function tol(x){
+        return `${f2(x*0.8)} - ${f2(x*1.2)}`;
+    }
+
+    document.getElementById("oneriler").innerHTML =
+        `<b>Önerilen Noktalar (psi):</b><br>
+        Alt: ${alt} (${tol(alt)})<br>
+        Orta: ${orta} (${tol(orta)})<br>
+        Üst: ${ust} (${tol(ust)})`;
+
+    let vals=[alt,orta,ust].map(v=>fromKpa(toKpa(v,"psi"),birim));
+
+    let html="";
+    for(let i=1;i<=3;i++){
+        html+=`
+        <b>Nokta ${i}</b><br>
+        Pc: <input id="vc${i}" value="${f2(vals[i-1])}">
+        Pref: <input id="vr${i}"><br><br>
+        `;
+    }
+
+    document.getElementById("olcumler").innerHTML=html;
+}
+
+function hesapla(){
+
+    let birim=document.getElementById("birim").value;
+    let t=parseFloat(document.getElementById("sicaklik").value);
+    let doc=document.getElementById("docNo").value;
+
+    let genel="UYGUN";
+    let rows="";
+
+    for(let i=1;i<=3;i++){
+
+        let vc=parseFloat(document.getElementById("vc"+i).value);
+        let vr=parseFloat(document.getElementById("vr"+i).value);
+
+        let vc_kpa=toKpa(vc,birim);
+        let vr_kpa=toKpa(vr,birim);
+
+        let E=vc_kpa-vr_kpa;
+        let absE=Math.abs(E);
+
+        let m=mih(vr_kpa,t);
+        let m_birim=fromKpa(m,birim);
+
+        let sonuc=(absE<=m)?"U":"UD";
+
+        if(sonuc==="UD") genel="UYGUN DEĞİL";
+
+        rows+=`
+        <tr>
+        <td>${i}</td>
+        <td>${f2(vc)}</td>
+        <td>${f2(vr)}</td>
+        <td>${f2(E)}</td>
+        <td>${f2(m_birim)}</td>
+        <td class="${sonuc==="U"?"good":"bad"}">${sonuc}</td>
+        </tr>`;
+    }
+
+    let genelClass = genel==="UYGUN" ? "good" : "bad";
+
+    document.getElementById("sonuc").innerHTML=`
+    <b>Doküman No:</b> ${doc}<br><br>
+
+    <table>
+    <tr>
+    <th>Nokta</th>
+    <th>Pc (${birim})</th>
+    <th>Pref (${birim})</th>
+    <th>Hata E (${birim})</th>
+    <th>MİH (${birim})</th>
+    <th>Sonuç</th>
+    </tr>
+    ${rows}
+    </table>
+
+    <h2 class="${genelClass}">GENEL SONUÇ: ${genel}</h2>
+    `;
+}
+
+</script>
+
+</body>
+</html>
