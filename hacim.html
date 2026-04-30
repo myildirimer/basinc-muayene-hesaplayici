@@ -1,0 +1,172 @@
+<button onclick="window.location.href='index.html'">← Ana Sayfa</button>
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Hacim Ölçek ile Muayene Formu</title>
+
+<style>
+body { font-family: Arial; background:#f4f6f8; margin:20px; }
+h1 { text-align:center; color:#2c3e50; }
+
+.container {
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+th, td {
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:center;
+}
+
+th {
+    background:#34495e;
+    color:white;
+}
+
+input {
+    width:90px;
+    padding:4px;
+    text-align:center;
+}
+
+select {
+    padding:5px;
+}
+
+.result-ok { color:green; font-weight:bold;}
+.result-bad { color:red; font-weight:bold;}
+
+.info {
+    font-size:13px;
+    margin-top:15px;
+    background:#eef3f7;
+    padding:10px;
+    border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>HACİM ÖLÇEK İLE MUAYENE FORMU</h1>
+
+<div class="container">
+
+<label>Doküman Ref No:</label>
+<input type="text">
+
+<label>Tarih:</label>
+<input type="date">
+
+<br><br>
+
+<label>Doğruluk Sınıfı (MİH %)</label>
+<select id="mih">
+    <option value="0.3">±0.30</option>
+    <option value="0.5">±0.50</option>
+    <option value="1.0">±1.00</option>
+</select>
+
+</div>
+
+<div class="container">
+<h3>A. Volumetrik Yöntem</h3>
+
+<table>
+<tr>
+<th>Debi</th>
+<th>Vs (L)</th>
+<th>Vref (L)</th>
+<th>Tr (°C)</th>
+<th>E (%)</th>
+<th>Sonuç</th>
+</tr>
+
+<tr>
+<td>Qmin</td>
+<td><input id="vs1"></td>
+<td><input id="vref1"></td>
+<td><input id="tr1"></td>
+<td id="e1"></td>
+<td id="s1"></td>
+</tr>
+
+<tr>
+<td>Qmax</td>
+<td><input id="vs2"></td>
+<td><input id="vref2"></td>
+<td><input id="tr2"></td>
+<td id="e2"></td>
+<td id="s2"></td>
+</tr>
+
+</table>
+
+<button onclick="hesapla()">Hesapla</button>
+
+</div>
+
+<div class="container info">
+<b>Bilgilendirme:</b><br><br>
+
+• Vs: Sayaç göstergesinde okunan hacim<br>
+• Vref: Ölçek kabı (referans hacim)<br>
+• Tr: Ölçek kabının sertifikasında belirtilen referans sıcaklık değeri<br><br>
+
+Kabul Kriteri: |E| ≤ MİH<br><br>
+
+Formül:<br>
+E = ((Vs - Vref) / Vref) × 100<br><br>
+
+Kabın genleşmesi dikkate alınmıştır.
+</div>
+
+<script>
+function hesapSatir(vs, vref, mih) {
+
+    let E = ((vs - vref) / vref) * 100;
+    let sonuc = Math.abs(E) <= mih ? "U" : "UD";
+
+    return {E: E.toFixed(2), sonuc: sonuc};
+}
+
+function hesapla() {
+
+    let mih = parseFloat(document.getElementById("mih").value);
+
+    let r1 = hesapSatir(
+        parseFloat(vs1.value),
+        parseFloat(vref1.value),
+        mih
+    );
+
+    let r2 = hesapSatir(
+        parseFloat(vs2.value),
+        parseFloat(vref2.value),
+        mih
+    );
+
+    e1.innerHTML = isNaN(r1.E) ? "" : r1.E;
+    e2.innerHTML = isNaN(r2.E) ? "" : r2.E;
+
+    s1.innerHTML = r1.sonuc || "";
+    s2.innerHTML = r2.sonuc || "";
+
+    s1.className = r1.sonuc === "U" ? "result-ok" : "result-bad";
+    s2.className = r2.sonuc === "U" ? "result-ok" : "result-bad";
+}
+</script>
+
+</body>
+</html>
