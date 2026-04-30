@@ -1,172 +1,371 @@
-<button onclick="window.location.href='index.html'">← Ana Sayfa</button>
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hacim Ölçek ile Muayene Formu</title>
-
 <style>
-body { font-family: Arial; background:#f4f6f8; margin:20px; }
-h1 { text-align:center; color:#2c3e50; }
-
-.container {
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:20px;
+:root {
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --ok: #15803d;
+    --bad: #b91c1c;
+    --warning: #b45309;
+    --border: #dbe2ea;
 }
 
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Inter, Arial, sans-serif;
+    color: var(--text);
+    background: linear-gradient(180deg, #eff6ff, var(--bg));
+}
+
+.wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.btn {
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+
+.btn-primary:hover { background: var(--primary-dark); }
+
+.btn-ghost {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+h1 {
+    margin: 8px 0 6px;
+    font-size: clamp(22px, 3vw, 30px);
+}
+
+.subtitle {
+    color: var(--muted);
+    margin: 0 0 18px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 14px;
+}
+
+.card {
+    grid-column: span 12;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+}
+
+.card h3 { margin: 2px 0 14px; }
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+label { font-size: 14px; color: #334155; display: block; margin-bottom: 6px; }
+
+input, select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.help { color: var(--muted); font-size: 13px; margin-top: 10px; }
+
+.table-wrap { overflow-x: auto; }
+
 table {
-    width:100%;
-    border-collapse:collapse;
-    margin-top:10px;
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
 }
 
 th, td {
-    border:1px solid #ccc;
-    padding:8px;
-    text-align:center;
+    border: 1px solid var(--border);
+    padding: 8px;
+    text-align: center;
 }
 
-th {
-    background:#34495e;
-    color:white;
+th { background: #eaf1ff; color: #1e3a8a; }
+
+td input { text-align: center; }
+
+.result-ok { color: var(--ok); font-weight: 700; }
+.result-bad { color: var(--bad); font-weight: 700; }
+.result-empty { color: var(--muted); }
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 10px;
 }
 
-input {
-    width:90px;
-    padding:4px;
-    text-align:center;
+.kpi {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #f8fafc;
 }
 
-select {
-    padding:5px;
+.kpi .label { color: var(--muted); font-size: 13px; }
+.kpi .value { font-size: 21px; font-weight: 700; margin-top: 4px; }
+
+.note {
+    border-left: 4px solid #3b82f6;
+    background: #eff6ff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: #1e3a8a;
+    margin-top: 12px;
 }
 
-.result-ok { color:green; font-weight:bold;}
-.result-bad { color:red; font-weight:bold;}
+@media (max-width: 900px) {
+    .form-row { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+    .summary { grid-template-columns: 1fr; }
+}
 
-.info {
-    font-size:13px;
-    margin-top:15px;
-    background:#eef3f7;
-    padding:10px;
-    border-radius:8px;
+@media (max-width: 520px) {
+    .form-row { grid-template-columns: 1fr; }
 }
 </style>
 </head>
-
 <body>
+<div class="wrapper">
+    <div class="toolbar">
+        <button class="btn btn-ghost" onclick="window.location.href='index.html'">← Ana Sayfa</button>
+        <div>
+            <button class="btn btn-ghost" onclick="temizleForm()">Temizle</button>
+            <button class="btn btn-primary" onclick="hesapla()">Hesapla</button>
+        </div>
+    </div>
 
-<h1>HACİM ÖLÇEK İLE MUAYENE FORMU</h1>
+    <h1>Hacim Ölçek Muayene Formu (Gelişmiş)</h1>
+    <p class="subtitle">Volumetrik yöntemle hata hesabı, sıcaklık düzeltmesi ve uygunluk özeti.</p>
 
-<div class="container">
+    <section class="grid">
+        <article class="card">
+            <h3>1) Genel Bilgiler</h3>
+            <div class="form-row">
+                <div>
+                    <label for="docNo">Doküman Ref No</label>
+                    <input id="docNo" type="text" placeholder="Örn: HM-2026-014">
+                </div>
+                <div>
+                    <label for="date">Tarih</label>
+                    <input id="date" type="date">
+                </div>
+                <div>
+                    <label for="operator">Operatör</label>
+                    <input id="operator" type="text" placeholder="Ad Soyad">
+                </div>
+                <div>
+                    <label for="mih">Doğruluk Sınıfı (MİH %)</label>
+                    <select id="mih">
+                        <option value="0.3">±0.30</option>
+                        <option value="0.5">±0.50</option>
+                        <option value="1">±1.00</option>
+                    </select>
+                </div>
+            </div>
+            <p class="help">Hesaplamalar otomatik olarak suyun hacim düzeltme yaklaşımı ile <b>Vref@20°C</b> üzerinden yapılır.</p>
+        </article>
 
-<label>Doküman Ref No:</label>
-<input type="text">
+        <article class="card">
+            <h3>2) Ölçüm Tablosu</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Debi Noktası</th>
+                            <th>Vs (L)</th>
+                            <th>Vref (L)</th>
+                            <th>Tr (°C)</th>
+                            <th>Vref@20 (L)</th>
+                            <th>E (%)</th>
+                            <th>Sonuç</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><b>Qmin</b></td>
+                            <td><input id="vs1" type="number" step="0.001" min="0" placeholder="0.000"></td>
+                            <td><input id="vref1" type="number" step="0.001" min="0" placeholder="0.000"></td>
+                            <td><input id="tr1" type="number" step="0.1" placeholder="20.0"></td>
+                            <td id="vcorr1" class="result-empty">—</td>
+                            <td id="e1" class="result-empty">—</td>
+                            <td id="s1" class="result-empty">Bekliyor</td>
+                        </tr>
+                        <tr>
+                            <td><b>Qmax</b></td>
+                            <td><input id="vs2" type="number" step="0.001" min="0" placeholder="0.000"></td>
+                            <td><input id="vref2" type="number" step="0.001" min="0" placeholder="0.000"></td>
+                            <td><input id="tr2" type="number" step="0.1" placeholder="20.0"></td>
+                            <td id="vcorr2" class="result-empty">—</td>
+                            <td id="e2" class="result-empty">—</td>
+                            <td id="s2" class="result-empty">Bekliyor</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="note">Kabul kriteri: <b>|E| ≤ MİH</b>. Sonuçlar bu kurala göre <b>U (Uygun)</b> veya <b>UD (Uygun Değil)</b> olarak belirlenir.</div>
+        </article>
 
-<label>Tarih:</label>
-<input type="date">
-
-<br><br>
-
-<label>Doğruluk Sınıfı (MİH %)</label>
-<select id="mih">
-    <option value="0.3">±0.30</option>
-    <option value="0.5">±0.50</option>
-    <option value="1.0">±1.00</option>
-</select>
-
-</div>
-
-<div class="container">
-<h3>A. Volumetrik Yöntem</h3>
-
-<table>
-<tr>
-<th>Debi</th>
-<th>Vs (L)</th>
-<th>Vref (L)</th>
-<th>Tr (°C)</th>
-<th>E (%)</th>
-<th>Sonuç</th>
-</tr>
-
-<tr>
-<td>Qmin</td>
-<td><input id="vs1"></td>
-<td><input id="vref1"></td>
-<td><input id="tr1"></td>
-<td id="e1"></td>
-<td id="s1"></td>
-</tr>
-
-<tr>
-<td>Qmax</td>
-<td><input id="vs2"></td>
-<td><input id="vref2"></td>
-<td><input id="tr2"></td>
-<td id="e2"></td>
-<td id="s2"></td>
-</tr>
-
-</table>
-
-<button onclick="hesapla()">Hesapla</button>
-
-</div>
-
-<div class="container info">
-<b>Bilgilendirme:</b><br><br>
-
-• Vs: Sayaç göstergesinde okunan hacim<br>
-• Vref: Ölçek kabı (referans hacim)<br>
-• Tr: Ölçek kabının sertifikasında belirtilen referans sıcaklık değeri<br><br>
-
-Kabul Kriteri: |E| ≤ MİH<br><br>
-
-Formül:<br>
-E = ((Vs - Vref) / Vref) × 100<br><br>
-
-Kabın genleşmesi dikkate alınmıştır.
+        <article class="card">
+            <h3>3) Muayene Özeti</h3>
+            <div class="summary">
+                <div class="kpi">
+                    <div class="label">Toplam Nokta</div>
+                    <div id="totalPoint" class="value">0</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">Uygun Nokta</div>
+                    <div id="okPoint" class="value">0</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">Genel Durum</div>
+                    <div id="overall" class="value">Bekliyor</div>
+                </div>
+            </div>
+        </article>
+    </section>
 </div>
 
 <script>
-function hesapSatir(vs, vref, mih) {
+function duzeltVref(vref, tr) {
+    const beta = 0.00021;
+    return vref * (1 + beta * (20 - tr));
+}
 
-    let E = ((vs - vref) / vref) * 100;
-    let sonuc = Math.abs(E) <= mih ? "U" : "UD";
+function hesapSatir(vs, vref, tr, mih) {
+    if ([vs, vref, tr].some(v => Number.isNaN(v)) || vref <= 0 || vs <= 0) {
+        return { valid: false, vcorr: null, E: null, sonuc: "Bekliyor" };
+    }
 
-    return {E: E.toFixed(2), sonuc: sonuc};
+    const vcorr = duzeltVref(vref, tr);
+    const E = ((vs - vcorr) / vcorr) * 100;
+    const sonuc = Math.abs(E) <= mih ? "U" : "UD";
+    return { valid: true, vcorr, E, sonuc };
+}
+
+function yazSonuc(row, result) {
+    const eCell = document.getElementById(`e${row}`);
+    const sCell = document.getElementById(`s${row}`);
+    const cCell = document.getElementById(`vcorr${row}`);
+
+    if (!result.valid) {
+        cCell.textContent = "—";
+        eCell.textContent = "—";
+        sCell.textContent = "Bekliyor";
+        cCell.className = "result-empty";
+        eCell.className = "result-empty";
+        sCell.className = "result-empty";
+        return false;
+    }
+
+    cCell.textContent = result.vcorr.toFixed(3);
+    eCell.textContent = result.E.toFixed(3);
+    sCell.textContent = result.sonuc;
+    eCell.className = result.sonuc === "U" ? "result-ok" : "result-bad";
+    sCell.className = result.sonuc === "U" ? "result-ok" : "result-bad";
+    cCell.className = "";
+    return result.sonuc === "U";
+}
+
+function guncelleOzet(toplam, uygun) {
+    const overall = document.getElementById("overall");
+    document.getElementById("totalPoint").textContent = toplam;
+    document.getElementById("okPoint").textContent = uygun;
+
+    if (toplam === 0) {
+        overall.textContent = "Bekliyor";
+        overall.style.color = "#334155";
+        return;
+    }
+
+    if (uygun === toplam) {
+        overall.textContent = "UYGUN";
+        overall.style.color = "#15803d";
+    } else if (uygun === 0) {
+        overall.textContent = "UYGUN DEĞİL";
+        overall.style.color = "#b91c1c";
+    } else {
+        overall.textContent = "KISMİ UYGUN";
+        overall.style.color = "#b45309";
+    }
 }
 
 function hesapla() {
+    const mih = parseFloat(document.getElementById("mih").value);
 
-    let mih = parseFloat(document.getElementById("mih").value);
-
-    let r1 = hesapSatir(
-        parseFloat(vs1.value),
-        parseFloat(vref1.value),
+    const r1 = hesapSatir(
+        parseFloat(document.getElementById("vs1").value),
+        parseFloat(document.getElementById("vref1").value),
+        parseFloat(document.getElementById("tr1").value),
         mih
     );
 
-    let r2 = hesapSatir(
-        parseFloat(vs2.value),
-        parseFloat(vref2.value),
+    const r2 = hesapSatir(
+        parseFloat(document.getElementById("vs2").value),
+        parseFloat(document.getElementById("vref2").value),
+        parseFloat(document.getElementById("tr2").value),
         mih
     );
 
-    e1.innerHTML = isNaN(r1.E) ? "" : r1.E;
-    e2.innerHTML = isNaN(r2.E) ? "" : r2.E;
+    const ok1 = yazSonuc(1, r1);
+    const ok2 = yazSonuc(2, r2);
 
-    s1.innerHTML = r1.sonuc || "";
-    s2.innerHTML = r2.sonuc || "";
-
-    s1.className = r1.sonuc === "U" ? "result-ok" : "result-bad";
-    s2.className = r2.sonuc === "U" ? "result-ok" : "result-bad";
+    const validCount = [r1, r2].filter(r => r.valid).length;
+    const okCount = [ok1, ok2].filter(Boolean).length;
+    guncelleOzet(validCount, okCount);
 }
-</script>
 
+function temizleForm() {
+    ["docNo", "date", "operator", "vs1", "vref1", "tr1", "vs2", "vref2", "tr2"].forEach(id => {
+        document.getElementById(id).value = "";
+    });
+    yazSonuc(1, { valid: false });
+    yazSonuc(2, { valid: false });
+    guncelleOzet(0, 0);
+}
+
+["vs1", "vref1", "tr1", "vs2", "vref2", "tr2", "mih"].forEach(id => {
+    document.getElementById(id).addEventListener("input", hesapla);
+});
+</script>
 </body>
 </html>
