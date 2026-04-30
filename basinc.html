@@ -1,292 +1,202 @@
-
-<button onclick="window.location.href='index.html'">← Ana Sayfa</button>
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Basınç Ölçer Muayene Sistemi</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basınç Ölçer Muayene Formu</title>
 <style>
-body {
-    font-family: Arial;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    margin: 0;
-    padding: 20px;
+:root {
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --ok: #15803d;
+    --bad: #b91c1c;
+    --border: #dbe2ea;
 }
-
-.container { max-width: 900px; margin: auto; }
-
-.card {
-    background: #fff;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-h1 { color: white; text-align: center; }
-
-h2 {
-    border-left: 5px solid #2a5298;
-    padding-left: 10px;
-}
-
-input, select { padding: 6px; margin: 5px; }
-
-button {
-    padding: 8px 15px;
-    background: #2a5298;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-button:hover { background: #1e3c72; }
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-
-th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: center;
-}
-
-th { background: #f0f0f0; }
-
-.good { color: green; font-weight: bold; }
-.bad { color: red; font-weight: bold; }
-
-.info {
-    background: #eef3ff;
-    padding: 10px;
-    border-left: 4px solid #2a5298;
-    margin-top: 10px;
-}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;color:var(--text);background:linear-gradient(180deg,#eff6ff,var(--bg));}
+.wrapper{max-width:1100px;margin:0 auto;padding:24px 16px 40px;}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-ghost{background:#e2e8f0;color:#1e293b}
+h1{margin:8px 0 6px;font-size:clamp(22px,3vw,30px)}
+.subtitle{color:var(--muted);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.card{grid-column:span 12;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 6px 20px rgba(15,23,42,.05)}
+.card h3{margin:2px 0 14px}
+.form-row{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px}
+label{font-size:14px;color:#334155;display:block;margin-bottom:6px}
+input,select{width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px}
+.help{color:var(--muted);font-size:13px;margin-top:10px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{border:1px solid var(--border);padding:8px;text-align:center}
+th{background:#eaf1ff;color:#1e3a8a}
+td input{text-align:center}
+.result-ok{color:var(--ok);font-weight:700}
+.result-bad{color:var(--bad);font-weight:700}
+.summary{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px}
+.kpi{padding:12px;border-radius:10px;border:1px solid var(--border);background:#f8fafc}
+.kpi .label{color:var(--muted);font-size:13px}
+.kpi .value{font-size:21px;font-weight:700;margin-top:4px}
+.note{border-left:4px solid #3b82f6;background:#eff6ff;padding:10px 12px;border-radius:8px;color:#1e3a8a;margin-top:12px}
+@media (max-width:900px){.form-row{grid-template-columns:repeat(2,minmax(130px,1fr))}.summary{grid-template-columns:1fr}}
+@media (max-width:520px){.form-row{grid-template-columns:1fr}}
 </style>
 </head>
-
 <body>
+<div class="wrapper">
+  <div class="toolbar">
+    <button class="btn btn-ghost" onclick="window.location.href='index.html'">← Ana Sayfa</button>
+    <div>
+      <button class="btn btn-ghost" onclick="temizleForm()">Temizle</button>
+      <button class="btn btn-primary" onclick="hesapla()">Hesapla</button>
+    </div>
+  </div>
 
-<div class="container">
+  <h1>Lastik Basınç Ölçer Muayene Formu (Gelişmiş)</h1>
+  <p class="subtitle">Basınç dönüştürme, sıcaklık etkisi, MİH hesabı ve uygunluk özeti.</p>
 
-<h1>Lastik Basıncı Ölçer Muayene Sistemi</h1>
+  <section class="grid">
+    <article class="card">
+      <h3>1) Genel Bilgiler</h3>
+      <div class="form-row">
+        <div><label for="docNo">Doküman Ref No</label><input id="docNo" type="text" placeholder="Örn: BM-2026-014"></div>
+        <div><label for="tarih">Tarih</label><input id="tarih" type="date"></div>
+        <div><label for="birim">Birim</label>
+          <select id="birim"><option value="psi">psi</option><option value="kPa">kPa</option><option value="bar">bar</option></select>
+        </div>
+        <div><label for="sicaklik">Ortam Sıcaklığı (°C)</label><input id="sicaklik" type="number" step="0.1" value="20"></div>
+      </div>
+    </article>
 
-<div class="card">
-<h2>Genel Bilgi</h2>
+    <article class="card">
+      <h3>2) Cihaz Aralığı ve Nokta Önerisi</h3>
+      <div class="form-row">
+        <div><label for="min">Min</label><input id="min" type="number" step="0.01"></div>
+        <div><label for="max">Max</label><input id="max" type="number" step="0.01"></div>
+        <div style="align-self:end"><button class="btn btn-primary" onclick="noktaOner()">Nokta Öner</button></div>
+      </div>
+      <div id="oneriler" class="note">Öneri görmek için Min/Max girip “Nokta Öner”e basın.</div>
+    </article>
 
-Doküman No:
-<input type="text" id="docNo" placeholder="REF-2026-001">
+    <article class="card">
+      <h3>3) Ölçüm Tablosu</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nokta</th><th>Pc</th><th>Pref</th><th>Hata E</th><th>MİH</th><th>Sonuç</th></tr></thead>
+          <tbody id="olcumBody"></tbody>
+        </table>
+      </div>
+      <p class="help">E = Pc - Pref, |E| ≤ MİH ise nokta uygundur.</p>
+    </article>
 
-Tarih:
-<input type="date" id="tarih">
+    <article class="card">
+      <h3>4) Sonuç Özeti</h3>
+      <div class="summary">
+        <div class="kpi"><div class="label">Toplam Nokta</div><div class="value" id="kpiToplam">0</div></div>
+        <div class="kpi"><div class="label">Uygun Nokta</div><div class="value" id="kpiUygun">0</div></div>
+        <div class="kpi"><div class="label">Genel Sonuç</div><div class="value" id="kpiGenel">-</div></div>
+      </div>
+      <div id="detay" class="note" style="margin-top:12px">Henüz hesaplama yapılmadı.</div>
+    </article>
+  </section>
 </div>
-
-<div class="card">
-<h2>1. Aşama: Cihaz</h2>
-
-Birim:
-<select id="birim">
-<option value="psi">psi</option>
-<option value="kPa">kPa</option>
-<option value="bar">bar</option>
-</select><br>
-
-Min: <input type="number" id="min">
-Max: <input type="number" id="max">
-
-<button onclick="noktaOner()">Nokta Öner</button>
-
-<div id="oneriler" class="info"></div>
-</div>
-
-<div class="card">
-<h2>2. Aşama: Muayene</h2>
-
-Sıcaklık (°C):
-<input type="number" id="sicaklik"><br><br>
-
-<div id="olcumler"></div>
-</div>
-
-<div class="card">
-<h2>3. Aşama: Sonuç</h2>
-
-<button onclick="hesapla()">Hesapla</button>
-
-<div id="sonuc"></div>
-</div>
-
-<div class="card">
-<h2>Bilgilendirme</h2>
-
-<b>Girdiler:</b><br>
-- Pc: Basınçölçer cihaz göstergesi<br>
-- Pref: Referans cihaz göstergesi<br>
-- Sıcaklık: Ortam sıcaklığı (°C)<br>
-- Min / Max: Cihaz çalışma aralığı<br><br>
-
-<b>Hesaplama Mantığı:</b><br>
-E = Pc - Pref<br>
-|E| = mutlak hata<br><br>
-
-MİH = Tablo Değeri × 1.25<br>
-Minimum MİH = 13.8 kPa<br><br>
-
-<b>Tablo Değeri:</b><br>
-- Basınca göre sabit seçilir (8 / 16 / 25)<br>
-- Sıcaklığa göre düzeltme uygulanır:<br>
-&nbsp;&nbsp;• T &lt; 15 → 0.5 × (15 - T) + sabit<br>
-&nbsp;&nbsp;• 15 ≤ T ≤ 25 → sabit<br>
-&nbsp;&nbsp;• T &gt; 25 → 0.5 × (T - 25) + sabit<br><br>
-
-<b>Karar Kriteri:</b><br>
-|E| ≤ MİH → UYGUN<br>
-|E| &gt; MİH → UYGUN DEĞİL
-
-</div>
-
-</div>
-
 <script>
+document.getElementById('tarih').valueAsDate = new Date();
 
-// bugünün tarihini otomatik ata
-document.getElementById("tarih").valueAsDate = new Date();
-
-function f2(x){ return Number(x).toFixed(2); }
-
-function toKpa(val, unit){
-    if(unit==="psi") return val*6.89476;
-    if(unit==="bar") return val*100;
-    return val;
-}
-
-function fromKpa(val, unit){
-    if(unit==="psi") return val/6.89476;
-    if(unit==="bar") return val/100;
-    return val;
-}
+const f2 = x => Number(x).toFixed(2);
+const toKpa = (val,u)=>u==='psi'?val*6.89476:u==='bar'?val*100:val;
+const fromKpa = (val,u)=>u==='psi'?val/6.89476:u==='bar'?val/100:val;
+const yuvarla5 = x => Math.round(x/5)*5;
 
 function tablo(kpa,t){
-    let s;
-    if(kpa<=400) s=8;
-    else if(kpa<=1000) s=16;
-    else s=25;
-
-    if(t<15) return 0.5*(15-t)+s;
-    if(t<=25) return s;
-    return 0.5*(t-25)+s;
+  const s = kpa<=400?8:(kpa<=1000?16:25);
+  if(t<15) return 0.5*(15-t)+s;
+  if(t<=25) return s;
+  return 0.5*(t-25)+s;
 }
+function mih(kpa,t){ return Math.max(tablo(kpa,t)*1.25,13.8); }
 
-function mih(kpa,t){
-    let m=tablo(kpa,t)*1.25;
-    if(m<13.8) m=13.8;
-    return m;
+function satirYaz(nokta, pc=''){ 
+  return `<tr>
+    <td>${nokta}</td>
+    <td><input id="pc${nokta}" type="number" step="0.01" value="${pc}"></td>
+    <td><input id="pref${nokta}" type="number" step="0.01"></td>
+    <td id="e${nokta}">-</td>
+    <td id="m${nokta}">-</td>
+    <td id="s${nokta}">-</td>
+  </tr>`;
 }
-
-function yuvarla5(x){ return Math.round(x/5)*5; }
 
 function noktaOner(){
+  const min=parseFloat(document.getElementById('min').value);
+  const max=parseFloat(document.getElementById('max').value);
+  const birim=document.getElementById('birim').value;
+  if(Number.isNaN(min)||Number.isNaN(max)||max<=min){ alert('Min/Max değerlerini kontrol edin.'); return; }
 
-    let min = parseFloat(document.getElementById("min").value);
-    let max = parseFloat(document.getElementById("max").value);
-    let birim = document.getElementById("birim").value;
+  const minPsi=fromKpa(toKpa(min,birim),'psi');
+  const maxPsi=fromKpa(toKpa(max,birim),'psi');
+  const range=maxPsi-minPsi;
+  const alt=yuvarla5(minPsi+range*0.2);
+  const orta=yuvarla5(minPsi+range*0.5);
+  const ust=yuvarla5(minPsi+range*0.8);
 
-    let minPsi = fromKpa(toKpa(min,birim),"psi");
-    let maxPsi = fromKpa(toKpa(max,birim),"psi");
+  const altU=fromKpa(toKpa(alt,'psi'),birim);
+  const ortaU=fromKpa(toKpa(orta,'psi'),birim);
+  const ustU=fromKpa(toKpa(ust,'psi'),birim);
 
-    let range = maxPsi - minPsi;
-
-    let alt = yuvarla5(minPsi + range*0.2);
-    let orta = yuvarla5(minPsi + range*0.5);
-    let ust = yuvarla5(minPsi + range*0.8);
-
-    function tol(x){
-        return `${f2(x*0.8)} - ${f2(x*1.2)}`;
-    }
-
-    document.getElementById("oneriler").innerHTML =
-        `Alt: ${alt} (${tol(alt)}) | Orta: ${orta} (${tol(orta)}) | Üst: ${ust} (${tol(ust)}) psi`;
-
-    let vals=[alt,orta,ust].map(v=>fromKpa(toKpa(v,"psi"),birim));
-
-    let html="";
-    for(let i=1;i<=3;i++){
-        html+=`
-        <b>Nokta ${i}</b><br>
-        Pc: <input id="vc${i}" value="${f2(vals[i-1])}">
-        Pref: <input id="vr${i}"><br><br>
-        `;
-    }
-
-    document.getElementById("olcumler").innerHTML=html;
+  document.getElementById('oneriler').innerHTML = `Önerilen noktalar (psi): <b>${alt}</b>, <b>${orta}</b>, <b>${ust}</b>.`;
+  document.getElementById('olcumBody').innerHTML = satirYaz(1,f2(altU))+satirYaz(2,f2(ortaU))+satirYaz(3,f2(ustU));
 }
 
 function hesapla(){
+  const birim=document.getElementById('birim').value;
+  const t=parseFloat(document.getElementById('sicaklik').value);
+  const satirlar=[1,2,3].filter(i=>document.getElementById(`pc${i}`));
+  if(!satirlar.length){ alert('Önce nokta önerisi oluşturun.'); return; }
 
-    let birim=document.getElementById("birim").value;
-    let t=parseFloat(document.getElementById("sicaklik").value);
-    let doc=document.getElementById("docNo").value;
-    let tarih=document.getElementById("tarih").value;
+  let uygun=0;
+  satirlar.forEach(i=>{
+    const pc=parseFloat(document.getElementById(`pc${i}`).value);
+    const pref=parseFloat(document.getElementById(`pref${i}`).value);
+    if(Number.isNaN(pc)||Number.isNaN(pref)||Number.isNaN(t)) return;
 
-    let genel="UYGUN";
-    let rows="";
+    const E=toKpa(pc,birim)-toKpa(pref,birim);
+    const M=mih(toKpa(pref,birim),t);
+    const sonuc=Math.abs(E)<=M;
+    if(sonuc) uygun++;
 
-    for(let i=1;i<=3;i++){
+    document.getElementById(`e${i}`).textContent=f2(fromKpa(E,birim));
+    document.getElementById(`m${i}`).textContent=f2(fromKpa(M,birim));
+    document.getElementById(`s${i}`).innerHTML=`<span class="${sonuc?'result-ok':'result-bad'}">${sonuc?'UYGUN':'UYGUN DEĞİL'}</span>`;
+  });
 
-        let vc=parseFloat(document.getElementById("vc"+i).value);
-        let vr=parseFloat(document.getElementById("vr"+i).value);
-
-        let vc_kpa=toKpa(vc,birim);
-        let vr_kpa=toKpa(vr,birim);
-
-        let E=vc_kpa-vr_kpa;
-        let absE=Math.abs(E);
-
-        let m=mih(vr_kpa,t);
-        let m_birim=fromKpa(m,birim);
-
-        let sonuc=(absE<=m)?"U":"UD";
-
-        if(sonuc==="UD") genel="UYGUN DEĞİL";
-
-        rows+=`
-        <tr>
-        <td>${i}</td>
-        <td>${f2(vc)}</td>
-        <td>${f2(vr)}</td>
-        <td>${f2(E)}</td>
-        <td>${f2(m_birim)}</td>
-        <td class="${sonuc==="U"?"good":"bad"}">${sonuc}</td>
-        </tr>`;
-    }
-
-    document.getElementById("sonuc").innerHTML=`
-    <b>Doküman No:</b> ${doc}<br>
-    <b>Tarih:</b> ${tarih}<br><br>
-
-    <table>
-    <tr>
-    <th>Nokta</th>
-    <th>Pc (${birim})</th>
-    <th>Pref (${birim})</th>
-    <th>Hata E (${birim})</th>
-    <th>MİH (${birim})</th>
-    <th>Sonuç</th>
-    </tr>
-    ${rows}
-    </table>
-
-    <h2 class="${genel==="UYGUN"?"good":"bad"}">GENEL SONUÇ: ${genel}</h2>
-    `;
+  const toplam=satirlar.length;
+  const genel=(uygun===toplam)?'UYGUN':'UYGUN DEĞİL';
+  document.getElementById('kpiToplam').textContent=toplam;
+  document.getElementById('kpiUygun').textContent=uygun;
+  document.getElementById('kpiGenel').innerHTML=`<span class="${genel==='UYGUN'?'result-ok':'result-bad'}">${genel}</span>`;
+  document.getElementById('detay').innerHTML=`Doküman: <b>${document.getElementById('docNo').value||'-'}</b> | Tarih: <b>${document.getElementById('tarih').value||'-'}</b> | Birim: <b>${birim}</b>`;
 }
 
+function temizleForm(){
+  document.getElementById('docNo').value='';
+  document.getElementById('min').value='';
+  document.getElementById('max').value='';
+  document.getElementById('sicaklik').value='20';
+  document.getElementById('oneriler').textContent='Öneri görmek için Min/Max girip “Nokta Öner”e basın.';
+  document.getElementById('olcumBody').innerHTML='';
+  document.getElementById('kpiToplam').textContent='0';
+  document.getElementById('kpiUygun').textContent='0';
+  document.getElementById('kpiGenel').textContent='-';
+  document.getElementById('detay').textContent='Henüz hesaplama yapılmadı.';
+}
 </script>
-
 </body>
 </html>
