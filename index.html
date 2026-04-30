@@ -1,62 +1,171 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Muayene Sistemi</title>
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Muayene Kontrol Sistemi</title>
 <style>
-body {
-    font-family: Arial;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    color: white;
-    text-align: center;
+:root {
+  --primary: #0b3c8a;
+  --primary-dark: #072a60;
+  --accent: #2f7df4;
+  --bg: #f2f6fc;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #dbe3ef;
 }
 
-.container {
-    margin-top: 120px;
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: radial-gradient(circle at top right, #e6f0ff 0%, var(--bg) 45%, #eef3fb 100%);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page {
+  width: min(1000px, 92%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 18px 36px rgba(11, 60, 138, 0.12);
+  overflow: hidden;
+}
+
+.header {
+  background: linear-gradient(120deg, var(--primary-dark), var(--primary));
+  color: #fff;
+  padding: 42px 32px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+  letter-spacing: 0.5px;
+}
+
+.header p {
+  margin: 12px 0 0;
+  color: #dbe9ff;
+  max-width: 760px;
+  line-height: 1.5;
+}
+
+.content {
+  padding: 28px 26px 34px;
+}
+
+.section-title {
+  margin: 0 0 16px;
+  color: var(--primary-dark);
+  font-size: 1.1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 18px;
 }
 
 .card {
-    background: white;
-    color: black;
-    padding: 30px;
-    margin: 20px;
-    display: inline-block;
-    border-radius: 12px;
-    cursor: pointer;
-    width: 260px;
-    font-size: 18px;
-    box-shadow: 0 5px 12px rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 18px;
+  background: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.card:hover {
-    background: #ddd;
-    transform: scale(1.05);
+.card:hover,
+.card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 10px 20px rgba(16, 72, 163, 0.16);
+  outline: none;
+}
+
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 1.08rem;
+  color: var(--primary-dark);
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+  font-size: 0.95rem;
+}
+
+.badge {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #fff;
+  background: var(--accent);
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 14px 24px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  background: #fbfcff;
 }
 </style>
 </head>
-
 <body>
+  <main class="page">
+    <header class="header">
+      <h1>Muayene Kontrol Sistemi</h1>
+      <p>
+        Basınç ölçer ve hacim ölçek muayene süreçlerini tek ekrandan güvenli, hızlı ve
+        düzenli bir şekilde yönetin.
+      </p>
+    </header>
 
-<div class="container">
+    <section class="content">
+      <h2 class="section-title">İşlem Seçimi</h2>
 
-<h1>MUAYENE KONTROL SİSTEMİ</h1>
+      <div class="grid">
+        <article class="card" role="button" tabindex="0" onclick="git('basinc.html')" onkeydown="kartTus(event, 'basinc.html')">
+          <span class="badge">MODÜL 01</span>
+          <h2>Basınç Ölçer Muayenesi</h2>
+          <p>Basınç cihazlarının muayene ve hesaplama adımlarını standartlara uygun biçimde yürütün.</p>
+        </article>
 
-<div class="card" onclick="git('basinc.html')">
-Basınç Ölçer Muayenesi
-</div>
+        <article class="card" role="button" tabindex="0" onclick="git('hacim.html')" onkeydown="kartTus(event, 'hacim.html')">
+          <span class="badge">MODÜL 02</span>
+          <h2>Hacim Ölçek Muayenesi</h2>
+          <p>Hacim ölçek kontrolü için gerekli hesaplamaları ve kayıt adımlarını hızlıca tamamlayın.</p>
+        </article>
+      </div>
+    </section>
 
-<div class="card" onclick="git('hacim.html')">
-Hacim Ölçek Muayenesi
-</div>
-
-</div>
+    <footer class="footer">Sistem Arayüzü • Kurumsal Kullanım</footer>
+  </main>
 
 <script>
-function git(sayfa){
-    window.location.href = sayfa;
+function git(sayfa) {
+  window.location.href = sayfa;
+}
+
+function kartTus(event, sayfa) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    git(sayfa);
+  }
 }
 </script>
-
 </body>
 </html>
