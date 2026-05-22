@@ -208,7 +208,7 @@ td input { text-align: center; }
                     </select>
                 </div>
             </div>
-            <p id="tempNote" class="help">Sıcaklık düzeltmesi açıkken Tr (°C) değerine göre Vref@20 hesaplanır.</p>
+            <p id="tempNote" class="help">Sıcaklık düzeltmesi açıkken Tm ve Tref farkına göre Vref@(L) hesaplanır.</p>
         </article>
 
         <article class="card">
@@ -218,10 +218,11 @@ td input { text-align: center; }
                     <thead>
                         <tr>
                             <th>Debi Noktası</th>
-                            <th>Vs (L)</th>
+                            <th>Vm (L)</th>
                             <th>Vref (L)</th>
-                            <th class="temp-col">Tr (°C)</th>
-                            <th>Vref@20 (L)</th>
+                            <th class="temp-col">Tm (°C)</th>
+                            <th class="temp-col">Tref (°C)</th>
+                            <th class="vcorr-col">Vref@(L)</th>
                             <th>E (%)</th>
                             <th>Sonuç</th>
                         </tr>
@@ -232,7 +233,8 @@ td input { text-align: center; }
                             <td><input id="vs1" type="number" step="0.001" min="0" placeholder="0.000"></td>
                             <td><input id="vref1" type="number" step="0.001" min="0" placeholder="0.000"></td>
                             <td class="temp-col"><input id="tr1" type="number" step="0.1" placeholder="20.0"></td>
-                            <td id="vcorr1" class="result-empty">—</td>
+                            <td class="temp-col"><input id="tref1" type="number" step="0.1" placeholder="20.0"></td>
+                            <td id="vcorr1" class="result-empty vcorr-col">—</td>
                             <td id="e1" class="result-empty">—</td>
                             <td id="s1" class="result-empty">Bekliyor</td>
                         </tr>
@@ -241,7 +243,8 @@ td input { text-align: center; }
                             <td><input id="vs2" type="number" step="0.001" min="0" placeholder="0.000"></td>
                             <td><input id="vref2" type="number" step="0.001" min="0" placeholder="0.000"></td>
                             <td class="temp-col"><input id="tr2" type="number" step="0.1" placeholder="20.0"></td>
-                            <td id="vcorr2" class="result-empty">—</td>
+                            <td class="temp-col"><input id="tref2" type="number" step="0.1" placeholder="20.0"></td>
+                            <td id="vcorr2" class="result-empty vcorr-col">—</td>
                             <td id="e2" class="result-empty">—</td>
                             <td id="s2" class="result-empty">Bekliyor</td>
                         </tr>
@@ -272,20 +275,20 @@ td input { text-align: center; }
 </div>
 
 <script>
-function duzeltVref(vref, tr) {
+function duzeltVref(vref, tm, tref) {
     const beta = 0.00021;
-    return vref * (1 + beta * (20 - tr));
+    return vref * (1 + beta * (tref - tm));
 }
 
-function hesapSatir(vs, vref, tr, mih, tempEnabled) {
+function hesapSatir(vs, vref, tm, tref, mih, tempEnabled) {
     const invalidCommon = Number.isNaN(vs) || Number.isNaN(vref) || vref <= 0 || vs <= 0;
-    const invalidTemp = tempEnabled && Number.isNaN(tr);
+    const invalidTemp = tempEnabled && (Number.isNaN(tm) || Number.isNaN(tref));
 
     if (invalidCommon || invalidTemp) {
         return { valid: false, vcorr: null, E: null, sonuc: "Bekliyor" };
     }
 
-    const vcorr = tempEnabled ? duzeltVref(vref, tr) : vref;
+    const vcorr = tempEnabled ? duzeltVref(vref, tm, tref) : vref;
     const E = ((vs - vcorr) / vcorr) * 100;
     const sonuc = Math.abs(E) <= mih ? "U" : "UD";
     return { valid: true, vcorr, E, sonuc };
@@ -346,6 +349,7 @@ function hesapla() {
         parseFloat(document.getElementById("vs1").value),
         parseFloat(document.getElementById("vref1").value),
         parseFloat(document.getElementById("tr1").value),
+        parseFloat(document.getElementById("tref1").value),
         mih,
         tempEnabled
     );
@@ -354,6 +358,7 @@ function hesapla() {
         parseFloat(document.getElementById("vs2").value),
         parseFloat(document.getElementById("vref2").value),
         parseFloat(document.getElementById("tr2").value),
+        parseFloat(document.getElementById("tref2").value),
         mih,
         tempEnabled
     );
@@ -369,10 +374,15 @@ function hesapla() {
 function applyTempMode() {
     const tempEnabled = document.getElementById("tempMode").value === "on";
     const tempCols = document.querySelectorAll(".temp-col");
+    const vcorrCols = document.querySelectorAll(".vcorr-col");
     const tempNote = document.getElementById("tempNote");
-    const trInputs = [document.getElementById("tr1"), document.getElementById("tr2")];
+    const trInputs = [document.getElementById("tr1"), document.getElementById("tr2"), document.getElementById("tref1"), document.getElementById("tref2")];
 
     tempCols.forEach(el => {
+        el.style.display = tempEnabled ? "" : "none";
+    });
+
+    vcorrCols.forEach(el => {
         el.style.display = tempEnabled ? "" : "none";
     });
 
@@ -382,12 +392,12 @@ function applyTempMode() {
     });
 
     tempNote.textContent = tempEnabled
-        ? "Sıcaklık düzeltmesi açıkken Tr (°C) değerine göre Vref@20 hesaplanır."
+        ? "Sıcaklık düzeltmesi açıkken Tm ve Tref farkına göre Vref@(L) hesaplanır."
         : "Sıcaklık düzeltmesi kapalıyken Tr sütunu kullanılmaz ve Vref doğrudan hesaplamaya alınır.";
 }
 
 function temizleForm() {
-    ["docNo", "date", "vs1", "vref1", "tr1", "vs2", "vref2", "tr2"].forEach(id => {
+    ["docNo", "date", "vs1", "vref1", "tr1", "tref1", "vs2", "vref2", "tr2", "tref2"].forEach(id => {
         document.getElementById(id).value = "";
     });
     document.getElementById("tempMode").value = "on";
@@ -397,13 +407,8 @@ function temizleForm() {
     guncelleOzet(0, 0);
 }
 
-["vs1", "vref1", "tr1", "vs2", "vref2", "tr2", "mih", "tempMode"].forEach(id => {
-    document.getElementById(id).addEventListener("input", hesapla);
-});
-
 document.getElementById("tempMode").addEventListener("change", () => {
     applyTempMode();
-    hesapla();
 });
 
 applyTempMode();
