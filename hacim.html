@@ -332,12 +332,9 @@ function guncelleOzet(toplam, uygun) {
     if (uygun === toplam) {
         overall.textContent = "UYGUN";
         overall.style.color = "#15803d";
-    } else if (uygun === 0) {
+    } else {
         overall.textContent = "UYGUN DEĞİL";
         overall.style.color = "#b91c1c";
-    } else {
-        overall.textContent = "KISMİ UYGUN";
-        overall.style.color = "#b45309";
     }
 }
 
