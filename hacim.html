@@ -171,6 +171,7 @@ td input { text-align: center; }
         <div>
             <button class="btn btn-ghost" onclick="temizleForm()">Temizle</button>
             <button class="btn btn-primary" onclick="hesapla()">Hesapla</button>
+            <button class="btn btn-ghost" onclick="window.print()">Yazdır</button>
         </div>
     </div>
 
@@ -190,19 +191,24 @@ td input { text-align: center; }
                     <input id="date" type="date">
                 </div>
                 <div>
-                    <label for="operator">Operatör</label>
-                    <input id="operator" type="text" placeholder="Ad Soyad">
-                </div>
-                <div>
                     <label for="mih">Doğruluk Sınıfı (MİH %)</label>
                     <select id="mih">
                         <option value="0.3">±0.30</option>
                         <option value="0.5">±0.50</option>
                         <option value="1">±1.00</option>
+                        <option value="1.5">±1.50</option>
+                        <option value="2">±2.00</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="tempMode">Sıcaklık Düzeltmesi</label>
+                    <select id="tempMode">
+                        <option value="on">Açık (Hesapla)</option>
+                        <option value="off">Kapalı (20°C kabul et)</option>
                     </select>
                 </div>
             </div>
-            <p class="help">Hesaplamalar otomatik olarak suyun hacim düzeltme yaklaşımı ile <b>Vref@20°C</b> üzerinden yapılır.</p>
+            <p class="help">Sıcaklık düzeltmesini isterseniz etkinleştirebilirsiniz. Kapalıysa hesaplamada <b>Tr=20°C</b> kabul edilir.</p>
         </article>
 
         <article class="card">
@@ -271,12 +277,13 @@ function duzeltVref(vref, tr) {
     return vref * (1 + beta * (20 - tr));
 }
 
-function hesapSatir(vs, vref, tr, mih) {
+function hesapSatir(vs, vref, tr, mih, tempEnabled) {
     if ([vs, vref, tr].some(v => Number.isNaN(v)) || vref <= 0 || vs <= 0) {
         return { valid: false, vcorr: null, E: null, sonuc: "Bekliyor" };
     }
 
-    const vcorr = duzeltVref(vref, tr);
+    const effectiveTr = tempEnabled ? tr : 20;
+    const vcorr = duzeltVref(vref, effectiveTr);
     const E = ((vs - vcorr) / vcorr) * 100;
     const sonuc = Math.abs(E) <= mih ? "U" : "UD";
     return { valid: true, vcorr, E, sonuc };
@@ -331,19 +338,22 @@ function guncelleOzet(toplam, uygun) {
 
 function hesapla() {
     const mih = parseFloat(document.getElementById("mih").value);
+    const tempEnabled = document.getElementById("tempMode").value === "on";
 
     const r1 = hesapSatir(
         parseFloat(document.getElementById("vs1").value),
         parseFloat(document.getElementById("vref1").value),
         parseFloat(document.getElementById("tr1").value),
-        mih
+        mih,
+        tempEnabled
     );
 
     const r2 = hesapSatir(
         parseFloat(document.getElementById("vs2").value),
         parseFloat(document.getElementById("vref2").value),
         parseFloat(document.getElementById("tr2").value),
-        mih
+        mih,
+        tempEnabled
     );
 
     const ok1 = yazSonuc(1, r1);
@@ -355,15 +365,16 @@ function hesapla() {
 }
 
 function temizleForm() {
-    ["docNo", "date", "operator", "vs1", "vref1", "tr1", "vs2", "vref2", "tr2"].forEach(id => {
+    ["docNo", "date", "vs1", "vref1", "tr1", "vs2", "vref2", "tr2"].forEach(id => {
         document.getElementById(id).value = "";
     });
+    document.getElementById("tempMode").value = "on";
     yazSonuc(1, { valid: false });
     yazSonuc(2, { valid: false });
     guncelleOzet(0, 0);
 }
 
-["vs1", "vref1", "tr1", "vs2", "vref2", "tr2", "mih"].forEach(id => {
+["vs1", "vref1", "tr1", "vs2", "vref2", "tr2", "mih", "tempMode"].forEach(id => {
     document.getElementById(id).addEventListener("input", hesapla);
 });
 </script>
