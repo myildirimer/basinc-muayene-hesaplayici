@@ -203,12 +203,12 @@ td input { text-align: center; }
                 <div>
                     <label for="tempMode">Sıcaklık Düzeltmesi</label>
                     <select id="tempMode">
-                        <option value="on">Açık (Hesapla)</option>
-                        <option value="off">Kapalı (20°C kabul et)</option>
+                        <option value="on">Açık</option>
+                        <option value="off">Kapalı</option>
                     </select>
                 </div>
             </div>
-            <p class="help">Sıcaklık düzeltmesini isterseniz etkinleştirebilirsiniz. Kapalıysa hesaplamada <b>Tr=20°C</b> kabul edilir.</p>
+            <p id="tempNote" class="help">Sıcaklık düzeltmesi açıkken Tr (°C) değerine göre Vref@20 hesaplanır.</p>
         </article>
 
         <article class="card">
@@ -220,7 +220,7 @@ td input { text-align: center; }
                             <th>Debi Noktası</th>
                             <th>Vs (L)</th>
                             <th>Vref (L)</th>
-                            <th>Tr (°C)</th>
+                            <th class="temp-col">Tr (°C)</th>
                             <th>Vref@20 (L)</th>
                             <th>E (%)</th>
                             <th>Sonuç</th>
@@ -231,7 +231,7 @@ td input { text-align: center; }
                             <td><b>Qmin</b></td>
                             <td><input id="vs1" type="number" step="0.001" min="0" placeholder="0.000"></td>
                             <td><input id="vref1" type="number" step="0.001" min="0" placeholder="0.000"></td>
-                            <td><input id="tr1" type="number" step="0.1" placeholder="20.0"></td>
+                            <td class="temp-col"><input id="tr1" type="number" step="0.1" placeholder="20.0"></td>
                             <td id="vcorr1" class="result-empty">—</td>
                             <td id="e1" class="result-empty">—</td>
                             <td id="s1" class="result-empty">Bekliyor</td>
@@ -240,7 +240,7 @@ td input { text-align: center; }
                             <td><b>Qmax</b></td>
                             <td><input id="vs2" type="number" step="0.001" min="0" placeholder="0.000"></td>
                             <td><input id="vref2" type="number" step="0.001" min="0" placeholder="0.000"></td>
-                            <td><input id="tr2" type="number" step="0.1" placeholder="20.0"></td>
+                            <td class="temp-col"><input id="tr2" type="number" step="0.1" placeholder="20.0"></td>
                             <td id="vcorr2" class="result-empty">—</td>
                             <td id="e2" class="result-empty">—</td>
                             <td id="s2" class="result-empty">Bekliyor</td>
@@ -278,12 +278,14 @@ function duzeltVref(vref, tr) {
 }
 
 function hesapSatir(vs, vref, tr, mih, tempEnabled) {
-    if ([vs, vref, tr].some(v => Number.isNaN(v)) || vref <= 0 || vs <= 0) {
+    const invalidCommon = Number.isNaN(vs) || Number.isNaN(vref) || vref <= 0 || vs <= 0;
+    const invalidTemp = tempEnabled && Number.isNaN(tr);
+
+    if (invalidCommon || invalidTemp) {
         return { valid: false, vcorr: null, E: null, sonuc: "Bekliyor" };
     }
 
-    const effectiveTr = tempEnabled ? tr : 20;
-    const vcorr = duzeltVref(vref, effectiveTr);
+    const vcorr = tempEnabled ? duzeltVref(vref, tr) : vref;
     const E = ((vs - vcorr) / vcorr) * 100;
     const sonuc = Math.abs(E) <= mih ? "U" : "UD";
     return { valid: true, vcorr, E, sonuc };
@@ -364,11 +366,32 @@ function hesapla() {
     guncelleOzet(validCount, okCount);
 }
 
+function applyTempMode() {
+    const tempEnabled = document.getElementById("tempMode").value === "on";
+    const tempCols = document.querySelectorAll(".temp-col");
+    const tempNote = document.getElementById("tempNote");
+    const trInputs = [document.getElementById("tr1"), document.getElementById("tr2")];
+
+    tempCols.forEach(el => {
+        el.style.display = tempEnabled ? "" : "none";
+    });
+
+    trInputs.forEach(input => {
+        input.disabled = !tempEnabled;
+        if (!tempEnabled) input.value = "";
+    });
+
+    tempNote.textContent = tempEnabled
+        ? "Sıcaklık düzeltmesi açıkken Tr (°C) değerine göre Vref@20 hesaplanır."
+        : "Sıcaklık düzeltmesi kapalıyken Tr sütunu kullanılmaz ve Vref doğrudan hesaplamaya alınır.";
+}
+
 function temizleForm() {
     ["docNo", "date", "vs1", "vref1", "tr1", "vs2", "vref2", "tr2"].forEach(id => {
         document.getElementById(id).value = "";
     });
     document.getElementById("tempMode").value = "on";
+    applyTempMode();
     yazSonuc(1, { valid: false });
     yazSonuc(2, { valid: false });
     guncelleOzet(0, 0);
@@ -377,6 +400,13 @@ function temizleForm() {
 ["vs1", "vref1", "tr1", "vs2", "vref2", "tr2", "mih", "tempMode"].forEach(id => {
     document.getElementById(id).addEventListener("input", hesapla);
 });
+
+document.getElementById("tempMode").addEventListener("change", () => {
+    applyTempMode();
+    hesapla();
+});
+
+applyTempMode();
 </script>
 </body>
 </html>
