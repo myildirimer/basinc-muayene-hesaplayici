@@ -105,6 +105,21 @@ input, select {
     font-size: 14px;
 }
 
+select {
+    background: #334155;
+    color: #f8fafc;
+}
+
+select option {
+    background: #334155;
+    color: #f8fafc;
+}
+
+select option:checked {
+    background: #94a3b8;
+    color: #0f172a;
+}
+
 .help { color: var(--muted); font-size: 13px; margin-top: 10px; }
 
 .table-wrap { overflow-x: auto; }
@@ -303,7 +318,7 @@ function yazSonuc(row, result) {
         cCell.textContent = "—";
         eCell.textContent = "—";
         sCell.textContent = "Bekliyor";
-        cCell.className = "result-empty";
+        cCell.className = "result-empty vcorr-col";
         eCell.className = "result-empty";
         sCell.className = "result-empty";
         return false;
@@ -314,7 +329,7 @@ function yazSonuc(row, result) {
     sCell.textContent = result.sonuc;
     eCell.className = result.sonuc === "U" ? "result-ok" : "result-bad";
     sCell.className = result.sonuc === "U" ? "result-ok" : "result-bad";
-    cCell.className = "";
+    cCell.className = "vcorr-col";
     return result.sonuc === "U";
 }
 
@@ -390,7 +405,7 @@ function applyTempMode() {
 
     tempNote.textContent = tempEnabled
         ? "Sıcaklık düzeltmesi açıkken Tm ve Tref farkına göre Vref@(L) hesaplanır."
-        : "Sıcaklık düzeltmesi kapalıyken Tr sütunu kullanılmaz ve Vref doğrudan hesaplamaya alınır.";
+        : "Sıcaklık düzeltmesi kapalıyken Tm, Tref ve Vref@(L) sütunları gizlenir; hesap Vref ile yapılır.";
 }
 
 function temizleForm() {
